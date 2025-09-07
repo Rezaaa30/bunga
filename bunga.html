@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Bunga Pas (SVG)</title>
+<style>
+  :root{
+    --bg1: #fbc2eb;
+    --bg2: #a6c1ee;
+    --petal: #ff9fc9;
+    --center: #ffd93d;
+  }
+
+  html,body{
+    height:100%;
+    margin:0;
+  }
+
+  body{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background: linear-gradient(135deg,var(--bg1),var(--bg2));
+    overflow:hidden;
+    font-family: sans-serif;
+  }
+
+  /* bunganya (SVG) */
+  .flower-wrap{
+    width:320px;
+    max-width:70vmin;
+    aspect-ratio:1/1;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+  }
+
+  svg#flower {
+    width:100%;
+    height:100%;
+    display:block;
+  }
+
+  /* sedikit gerak lembut supaya hidup */
+  .flower-group {
+    transform-origin: 150px 150px; /* pusat SVG (viewBox 0 0 300 300) */
+    animation: gentle-sway 6s ease-in-out infinite;
+  }
+  @keyframes gentle-sway {
+    0% { transform: rotate(-3deg); }
+    50% { transform: rotate(3deg); }
+    100% { transform: rotate(-3deg); }
+  }
+
+  /* efek glow pada tengah */
+  .center {
+    filter: drop-shadow(0 6px 8px rgba(0,0,0,0.12));
+  }
+
+  /* kelopak sedikit scale animation */
+  .petal {
+    transform-origin: 150px 150px;
+    transition: transform .6s ease;
+  }
+  svg#flower:hover .petal {
+    transform: scale(1.03);
+  }
+
+  /* falling petals (HTML divs) */
+  .falling {
+    position: absolute;
+    top: -40px;
+    width: 18px;
+    height: 28px;
+    background: var(--petal);
+    border-radius: 50% 50% 45% 45%;
+    opacity: 0.9;
+    transform-origin: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+    pointer-events: none;
+    animation-timing-function: linear;
+  }
+
+  @keyframes fall {
+    from { transform: translateY(0) rotate(0deg); opacity: 0.95; }
+    60%  { opacity: 0.9; }
+    to   { transform: translateY(115vh) rotate(360deg); opacity: 0.6; }
+  }
+</style>
+</head>
+<body>
+  <div class="flower-wrap">
+    <!-- SVG viewBox 300x300, pusat di 150,150 -->
+    <svg id="flower" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" aria-label="Bunga">
+      <defs>
+        <radialGradient id="gGlow" cx="50%" cy="40%">
+          <stop offset="0%" stop-color="#fff7c6" stop-opacity="0.9"/>
+          <stop offset="100%" stop-color="#ffd93d" stop-opacity="0.0"/>
+        </radialGradient>
+      </defs>
+
+      <g class="flower-group" id="flowerGroup">
+        <!-- kelopak: gunakan ellipse yang ditempatkan di atas lalu di-rotate mengelilingi pusat -->
+        <!-- setiap ellipse punya cx=150 (pusat hor), cy=90 (atas dari pusat) sehingga saat di-rotate posisinya akurat -->
+        <ellipse class="petal" cx="150" cy="90" rx="36" ry="78" fill="#ffb6d8" transform="rotate(0 150 150)"/>
+        <ellipse class="petal" cx="150" cy="90" rx="36" ry="78" fill="#ff9fc9" transform="rotate(72 150 150)"/>
+        <ellipse class="petal" cx="150" cy="90" rx="36" ry="78" fill="#ff8fb8" transform="rotate(144 150 150)"/>
+        <ellipse class="petal" cx="150" cy="90" rx="36" ry="78" fill="#ff9fc9" transform="rotate(216 150 150)"/>
+        <ellipse class="petal" cx="150" cy="90" rx="36" ry="78" fill="#ffb6d8" transform="rotate(288 150 150)"/>
+
+        <!-- lingkaran tengah yang pas -->
+        <circle class="center" cx="150" cy="150" r="40" fill="url(#gGlow)" />
+        <circle cx="150" cy="150" r="24" fill="var(--center)"/>
+      </g>
+
+      <!-- optional: batang (di bawah) -->
+      <rect x="144" y="170" width="12" height="90" rx="6" ry="6" fill="#3a8a3a" opacity="0.9"/>
+      <ellipse cx="120" cy="215" rx="28" ry="12" fill="#3a8a3a" opacity="0.9" transform="rotate(-30 120 215)"/>
+      <ellipse cx="180" cy="215" rx="28" ry="12" fill="#3a8a3a" opacity="0.9" transform="rotate(30 180 215)"/>
+    </svg>
+  </div>
+
+<script>
+  // buat efek kelopak kecil jatuh (divs)
+  function createFallingPetal() {
+    const d = document.createElement('div');
+    d.className = 'falling';
+    // random horizontal start
+    const left = Math.random() * window.innerWidth;
+    d.style.left = left + 'px';
+    // rotation random
+    const rot = Math.random() * 360;
+    d.style.transform = `rotate(${rot}deg)`;
+
+    // random size & shape slightly
+    const w = 12 + Math.random() * 18;
+    const h = 18 + Math.random() * 26;
+    d.style.width = w + 'px';
+    d.style.height = h + 'px';
+    d.style.borderRadius = (40 + Math.random() * 40) + '%';
+
+    const dur = 4 + Math.random() * 6; // 4s - 10s
+    d.style.animation = `fall ${dur}s linear forwards`;
+
+    // small horizontal sway via CSS transform animation added inline using setInterval rotate during falling
+    document.body.appendChild(d);
+
+    // remove after finished
+    setTimeout(() => {
+      d.remove();
+    }, (dur + 0.5) * 1000);
+  }
+
+  // spawn petals but not too banyak
+  const spawnInterval = setInterval(createFallingPetal, 350);
+
+  // stop spawning if tab hidden to save CPU
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      clearInterval(spawnInterval);
+    }
+  });
+
+  // tips: jika mau lebih banyak/lebih sedikit, ubah interval di atas atau durasi
+</script>
+</body>
+</html>
